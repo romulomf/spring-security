@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.eazybytes.exceptionhandling.CustomAccessDeniedHandler;
 import com.eazybytes.filter.CsrfCookieFilter;
@@ -59,7 +60,7 @@ public class ProjectSecurityConfig {
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 //				.invalidSessionUrl("/invalidSession").maximumSessions(1).maxSessionsPreventsLogin(true)
 		);
-		http.cors(corsConfig -> corsConfig.configurationSource(request -> {
+		http.cors(corsConfig -> {
 			CorsConfiguration config = new CorsConfiguration();
 			config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
 			/**
@@ -71,8 +72,10 @@ public class ProjectSecurityConfig {
 			config.setAllowedHeaders(Collections.singletonList("*"));
 			config.setExposedHeaders(Arrays.asList("Authorization"));
 			config.setMaxAge(3600L);
-			return config;
-		}));
+			UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+			source.registerCorsConfiguration("/**", config);
+			corsConfig.configurationSource(source);
+		});
 		// habilita a proteção CSRF.
 		http.csrf(csrfConfig -> csrfConfig
 				.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)

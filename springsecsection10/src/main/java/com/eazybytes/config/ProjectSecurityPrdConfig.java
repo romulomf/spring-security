@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HttpsRedirectConfigurer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.eazybytes.filter.AuthoritiesLoggingAfterFilter;
 import com.eazybytes.filter.AuthoritiesLoggingAtFilter;
@@ -45,18 +47,24 @@ public class ProjectSecurityPrdConfig {
 		 * prática muito pouco comum de ser usada.
 		 */
 		.addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class);
-		http.cors(corsConfig -> corsConfig.configurationSource(request -> {
+		http.cors(corsConfig -> {
 			CorsConfiguration config = new CorsConfiguration();
-			config.setAllowedOrigins(Collections.singletonList("https://localhost:4200"));
+			config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+			/**
+			 * Permite que a configuração CORS atenda a requisições de quaisquer que sejam os
+			 * verbos HTTP utilizados nas requisições, tais como DELETE, GET, POST, PATCH ou PUT.
+			 */
 			config.setAllowedMethods(Collections.singletonList("*"));
 			config.setAllowCredentials(true);
 			config.setAllowedHeaders(Collections.singletonList("*"));
 			config.setMaxAge(3600L);
-			return config;
-		}));
+			UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+			source.registerCorsConfiguration("/**", config);
+			corsConfig.configurationSource(source);
+		});
 		http.sessionManagement(smc -> smc.invalidSessionUrl("/invalidSession").maximumSessions(1).maxSessionsPreventsLogin(true));
 		// a configuração de canais a seguir, exige que seja usado canal seguro, ou seja apenas HTTPS.
-		http.requiresChannel(rcf -> rcf.anyRequest().requiresSecure());
+		http.redirectToHttps(HttpsRedirectConfigurer::disable);
 		http.authorizeHttpRequests(req -> req
 //			.requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
 //			.requestMatchers("/myBalance").hasAnyAuthority("VIEWBALANCE", "VIEWACCOUNT")

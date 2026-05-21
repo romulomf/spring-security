@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.eazybytes.exceptionhandling.CustomAccessDeniedHandler;
 import com.eazybytes.filter.CsrfCookieFilter;
@@ -46,16 +47,22 @@ public class ProjectSecurityPrdConfig {
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 //				.invalidSessionUrl("/invalidSession").maximumSessions(1).maxSessionsPreventsLogin(true)
 		);
-		http.cors(corsConfig -> corsConfig.configurationSource(request -> {
+		http.cors(corsConfig -> {
 			CorsConfiguration config = new CorsConfiguration();
-			config.setAllowedOrigins(Collections.singletonList("https://localhost:4200"));
+			config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+			/**
+			 * Permite que a configuração CORS atenda a requisições de quaisquer que sejam os
+			 * verbos HTTP utilizados nas requisições, tais como DELETE, GET, POST, PATCH ou PUT.
+			 */
 			config.setAllowedMethods(Collections.singletonList("*"));
 			config.setAllowCredentials(true);
 			config.setAllowedHeaders(Collections.singletonList("*"));
 			config.setExposedHeaders(Arrays.asList("Authorization"));
 			config.setMaxAge(3600L);
-			return config;
-		}));
+			UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+			source.registerCorsConfiguration("/**", config);
+			corsConfig.configurationSource(source);
+		});
 		// habilita a proteção CSRF.
 		http.csrf(csrfConfig -> csrfConfig
 				.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)

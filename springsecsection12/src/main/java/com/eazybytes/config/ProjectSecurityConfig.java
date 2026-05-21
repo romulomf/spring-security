@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.HttpsRedirectConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -22,6 +23,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.eazybytes.exceptionhandling.CustomAccessDeniedHandler;
 import com.eazybytes.exceptionhandling.CustomBasicAuthenticationEntryPoint;
@@ -55,7 +57,7 @@ public class ProjectSecurityConfig {
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 //				.invalidSessionUrl("/invalidSession").maximumSessions(1).maxSessionsPreventsLogin(true)
 		);
-		http.cors(corsConfig -> corsConfig.configurationSource(request -> {
+		http.cors(corsConfig -> {
 			CorsConfiguration config = new CorsConfiguration();
 			config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
 			/**
@@ -67,8 +69,10 @@ public class ProjectSecurityConfig {
 			config.setAllowedHeaders(Collections.singletonList("*"));
 			config.setExposedHeaders(Arrays.asList("Authorization"));
 			config.setMaxAge(3600L);
-			return config;
-		}));
+			UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+			source.registerCorsConfiguration("/**", config);
+			corsConfig.configurationSource(source);
+		});
 		// habilita a proteção CSRF.
 		http.csrf(csrfConfig -> csrfConfig
 				.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
@@ -87,7 +91,7 @@ public class ProjectSecurityConfig {
 			.addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
 			.addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class);
 		// a configuração de canais a seguir, permite que seja usado canal inseguro, ou seja HTTP
-		http.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure());
+		http.redirectToHttps(HttpsRedirectConfigurer::disable);
 		http.authorizeHttpRequests(req -> req
 //			.requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
 //			.requestMatchers("/myBalance").hasAnyAuthority("VIEWBALANCE", "VIEWACCOUNT")
