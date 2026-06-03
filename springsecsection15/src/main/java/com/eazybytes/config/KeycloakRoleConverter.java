@@ -2,7 +2,6 @@ package com.eazybytes.config;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
@@ -16,14 +15,15 @@ public class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedA
 
 	@Override
 	public Collection<GrantedAuthority> convert(Jwt source) {
-		Map<String, Object> realmAccess = (Map<String, Object>) source.getClaims().get("realm_access");
+		var realmAccess = source.getClaimAsMap("realm_access");
 		if (realmAccess == null || realmAccess.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return ((List<String>) realmAccess.get("roles"))
-				.stream()
-				.map("ROLE_"::concat)
-				.map(SimpleGrantedAuthority::new)
-				.collect(Collectors.toList());
+		@SuppressWarnings("unchecked")
+		List<String> roles = (List<String>) realmAccess.get("roles");
+		if (Collections.isEmpty(roles)) {
+			return Collections.emptyList();
+		}
+		return roles.stream().map("ROLE_"::concat).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 	}
 }

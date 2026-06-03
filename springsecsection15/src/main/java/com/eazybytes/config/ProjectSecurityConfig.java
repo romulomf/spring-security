@@ -50,7 +50,7 @@ public class ProjectSecurityConfig {
 				 * fixation ataque, onde um usuário pode "roubar" o cookie de um outro usuário e com isso ter detalhes
 				 * pessoais associados a conta do usuário a qual a conta foi roubada.
 				 */
-//				.sessionFixation(sfc -> sfc.changeSessionId())
+				.sessionFixation(sfc -> sfc.changeSessionId())
 				/**
 				 * Como a aplicação irá confiar em tokens JWT para o processo de autenticação/autorização, a aplicação
 				 * no servidor não precisa registrar uma sessão no backend. A aplicação passa a ser stateless, isto é,
@@ -58,7 +58,7 @@ public class ProjectSecurityConfig {
 				 * presentes no token que o cliente irá encaminhar para executar ações privilegiadas.
 				 */
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//				.invalidSessionUrl("/invalidSession").maximumSessions(1).maxSessionsPreventsLogin(true)
+				.invalidSessionUrl("/invalidSession").maximumSessions(1).maxSessionsPreventsLogin(true)
 		);
 		http.cors(corsConfig -> {
 			CorsConfiguration config = new CorsConfiguration();
@@ -85,10 +85,10 @@ public class ProjectSecurityConfig {
 		// a configuração de canais a seguir, permite que seja usado canal inseguro, ou seja HTTP
 		http.redirectToHttps(HttpsRedirectConfigurer::disable);
 		http.authorizeHttpRequests(req -> req
-//			.requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
-//			.requestMatchers("/myBalance").hasAnyAuthority("VIEWBALANCE", "VIEWACCOUNT")
-//			.requestMatchers("/myCards").hasAuthority("VIEWCARDS")
-//			.requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
+			.requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
+			.requestMatchers("/myBalance").hasAnyAuthority("VIEWBALANCE", "VIEWACCOUNT")
+			.requestMatchers("/myCards").hasAuthority("VIEWCARDS")
+			.requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
 			.requestMatchers("/myAccount").hasRole("USER")
 			.requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
 			.requestMatchers("/myCards").hasRole("USER")
@@ -97,18 +97,6 @@ public class ProjectSecurityConfig {
 			.requestMatchers("/contact", "/error", "/notices", "/register").permitAll()
 		);
 		http.oauth2ResourceServer(rsc -> rsc.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter)));
-//		http.oauth2ResourceServer(rsc -> rsc.opaqueToken(otc -> otc.authenticationConverter(new KeycloakOpaqueRoleConverter())
-//																	.introspectionUri(instrospectionUri)
-//																	.introspectionClientCredentials(clientId, clientSecret)));
-		/**
-		 * A configuração que indica false para requireExplicitSave indica que a aplicação não irá armazenar
-		 * nenhuma informação sobre o cookie JSESSIONID nem detalhes de autenticação no SecurityContextHolder
-		 * e indica ao spring security que ele deve cuidar desta tarefa.
-		 * 
-		 * Como a aplicação passou a ser stateless, esta configuração não é mais necessária, pois como não
-		 * está sendo mais gerenciado o estado, não há também mais a geração do cookie JSESSIONID.
-		 */
-//		http.securityContext(scc -> scc.requireExplicitSave(false));
 		/**
 		 * A configuração a seguir é a uma outra forma de tratar as exceções de acesso não autorizado HTTP 401.
 		 * Esta é uma configuração global que irá prover a resposta com base na configuração customizada que
